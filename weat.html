@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MAUSAAM ki JANKARI</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      background: #5d5959;
+      color: #fcf9f9;
+      padding: 40px;
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: center center;
+      transition: background 0.6s ease, color 0.6s ease;
+    }
+
+    h1 {
+      color: #00c6ff;
+      font-size: 36px;
+    }
+
+    .welcome-message {
+      font-size: 22px;
+      background: linear-gradient(to right, #00c6ff, #0072ff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: fadeIn 1s ease-in;
+      margin-bottom: 20px;
+    }
+
+    @keyframes fadeIn {
+      0% {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    input {
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      width: 250px;
+      margin-top: 20px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    button {
+      padding: 14px 20px;
+      margin-left: 10px;
+      font-size: 16px;
+      border: none;
+      border-radius: 25px;
+      background: linear-gradient(135deg, #00c6ff, #0072ff);
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      background: linear-gradient(135deg, #0072ff, #00c6ff);
+    }
+
+    .map-image {
+      width: 200px;
+      height: auto;
+      border-radius: 10px;
+      animation: zoomMap 15s ease-in-out infinite alternate;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+      margin-top: 20px;
+      transition: transform 0.5s ease;
+    }
+
+    @keyframes zoomMap {
+      0% {
+        transform: scale(1) rotate(0deg);
+      }
+
+      100% {
+        transform: scale(1.05) rotate(0.5deg);
+      }
+    }
+
+    .map-image:hover {
+      transform: scale(1.08);
+    }
+
+    #weather {
+      margin-top: 30px;
+      background: rgba(255, 255, 255, 0.07);
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+      display: inline-block;
+      max-width: 90%;
+      opacity: 0;
+      animation: fadeInWeather 1s forwards ease;
+    }
+
+    @keyframes fadeInWeather {
+      to {
+        opacity: 1;
+      }
+    }
+
+    #moon-animation {
+      width: 80px;
+      height: 80px;
+      margin: 20px auto;
+      background: radial-gradient(circle at center, #ffffff 40%, #ccc 90%);
+      border-radius: 50%;
+      display: none;
+      animation: moonRise 4s ease-in-out forwards;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+    }
+
+    @keyframes moonRise {
+      from {
+        transform: translateY(80px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    #stars {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: white;
+      border-radius: 50%;
+      animation: twinkle 2s infinite alternate;
+      opacity: 0.5;
+    }
+
+    @keyframes twinkle {
+      0% {
+        opacity: 0.3;
+      }
+
+      100% {
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <h2 class="welcome-message">🌤 आपका स्वागत है 🌤</h2>
+  <h1>Check Weather</h1>
+  <img src="OIP.jpeg" alt="World Map" class="map-image" />
+  <p>Enter Your Location</p>
+
+  <input type="text" id="cityInput" placeholder="Enter your city" />
+  <button onclick="getWeather()">🔍 Get Weather</button>
+
+  <div id="moon-animation"></div>
+  <div id="stars"></div>
+  <div id="weather"></div>
+  <div id="forecast"></div>
+
+  <script>
+    const apiKey = '0b428ea8e7150a53e7ddedee87302864';
+
+    document.getElementById("cityInput").addEventListener("keypress", function (e) {
+      if (e.key === "Enter") getWeather();
+    });
+
+    async function getWeather() {
+      const city = document.getElementById('cityInput').value || 'port blair';
+      const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
+
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.cod === 200) {
+          const now = data.dt, sunrise = data.sys.sunrise, sunset = data.sys.sunset;
+          const isDay = now >= sunrise && now < sunset;
+
+          const weatherMain = data.weather[0].main.toLowerCase();
+          let bgUrl = '';
+
+          switch (weatherMain) {
+            case 'clouds': bgUrl = 'https://img.freepik.com/premium-photo/god-light-dark-cloudy-sky-with-sun-beam-sun-rays-through-black-clouds-god-light-from-heaven_33867-2175.jpg?w=740'; break;
+            case 'rain': bgUrl = 'https://th.bing.com/th/id/OIP.dCw2c0Srg07PqoAl3lcvaAHaFB?rs=1&pid=ImgDetMain'; break;
+            case 'snow': bgUrl = 'https://cdn1.vectorstock.com/i/1000x1000/11/05/winter-background-2-vector-1761105.jpg'; break;
+            case 'thunderstorm': bgUrl = 'https://as1.ftcdn.net/v2/jpg/05/54/60/78/1000_F_554607802_cqgTC1WmpRsgzOHy3Og1rMjjtZv7naqg.jpg'; break;
+            case 'mist':
+            case 'fog':
+            case 'haze': bgUrl = 'https://th.bing.com/th/id/OIP.YswN5n561_0a9Q0nfLQkmAHaE9?rs=1&pid=ImgDetMain'; break;
+            default:
+              bgUrl = isDay
+                ? 'https://i.pinimg.com/736x/23/9f/90/239f90c5c837d71d0eba1e45459f2741.jpg'
+                : 'https://i.pinimg.com/736x/df/10/57/df1057f64b00977f000dc98e36aeecfd.jpg';
+          }
+
+          document.body.style.backgroundImage = `url('${bgUrl}')`;
+          document.body.style.color = isDay ? '#000' : '#fff';
+
+          const iconUrl = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
+
+          document.getElementById('weather').innerHTML = `
+        <h2>${data.name}, ${data.sys.country}</h2>
+        <img src="${iconUrl}">
+        <p><strong>${data.weather[0].main}</strong>: ${data.weather[0].description}</p>
+        <p>Temperature: ${data.main.temp}°C</p>
+        <p>visibility: ${data.visibility} meters</p>
+        <p>pressure: ${data.main.pressure} hPa</p>
+        <p>clouds: ${data.clouds.all}%</p>
+        <p>Feels like: ${data.main.feels_like}°C</p>
+        <p>Humidity: ${data.main.humidity}%</p>
+        <p>Wind Speed: ${data.wind.speed} m/s</p>
+        <p>Pressure: ${data.main.pressure} hPa</p>
+      `;
+
+          const moon = document.getElementById("moon-animation");
+          const stars = document.getElementById("stars");
+
+          if (isDay) {
+            moon.style.display = "none";
+            stars.innerHTML = "";
+          } else {
+            moon.style.display = "block";
+            stars.innerHTML = "";
+            for (let i = 0; i < 100; i++) {
+              const star = document.createElement("div");
+              star.className = "star";
+              star.style.top = `${Math.random() * 100}%`;
+              star.style.left = `${Math.random() * 100}%`;
+              star.style.animationDuration = `${Math.random() * 3 + 2}s`;
+              stars.appendChild(star);
+            }
+          }
+
+          getForecast(city);
+
+        } else {
+          document.getElementById('weather').innerHTML = `<p>City not found. Try again.</p>`;
+        }
+
+      } catch (error) {
+        document.getElementById('weather').innerHTML = `<p>Error fetching weather data.</p>`;
+      }
+    }
+
+    async function getForecast(city) {
+      const url = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric`;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        const forecastBox = document.getElementById('forecast');
+
+        if (data.cod !== "200") {
+          forecastBox.innerHTML = `<p>Forecast not available.</p>`;
+          return;
+        }
+
+        const daily = data.list.filter(i => i.dt_txt.includes("12:00:00"));
+
+        let html = `
+      <h3>5-Day Forecast</h3>
+      <div style="display:flex; gap:15px; flex-wrap:wrap; justify-content:center;">
+    `;
+
+        daily.forEach(day => {
+          html += `
+        <div style="padding:10px; background:#ffffff22; border-radius:8px; width:120px; text-align:center;">
+          <p><strong>${new Date(day.dt * 1000).toLocaleDateString()}</strong></p>
+          <img src="https://openweathermap.org/img/wn/${day.weather[0].icon}.png">
+          <p>${day.weather[0].main}</p>
+          <p>${day.main.temp}°C</p>
+          <p>Wind: ${day.wind.speed} m/s</p>
+          <p>Humidity: ${day.main.humidity}%</p>
+          <p>clouds: ${day.clouds.all}%</p>
+          <p>visibility: ${day.visibility} meters</p>
+        </div>
+      `;
+        });
+
+        html += `</div>`;
+        forecastBox.innerHTML = html;
+
+      } catch (err) {
+        document.getElementById('forecast').innerHTML = `<p>Error loading forecast.</p>`;
+      }
+    }
+
+    window.onload = getWeather;
+  </script>
+
+  <footer class="weather-footer">
+    <p>🔗 Weather powered by <a href="https://openweathermap.org" target="_blank">OpenWeatherMap</a></p>
+    <p>© <span id="year"></span> <strong>Mausam ki Jankari</strong></p>
+  </footer>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+
+</body>
+
+</html>
